@@ -1,30 +1,21 @@
 import { NextResponse } from 'next/server'
 import type { NextRequest } from 'next/server'
-import { updateSession } from '@/lib/supabase/middleware'
 
-export async function middleware(request: NextRequest) {
-    const publicRoutes = [
-        '/auth/signin',
-        '/auth/signup',
-        '/auth/reset-password',
-        '/auth/update-password',
-        '/api'
-    ]
-
-    const isPublicRoute = publicRoutes.some(route =>
-        request.nextUrl.pathname.startsWith(route)
-    )
-
-    if (isPublicRoute) {
-        return NextResponse.next()
-    }
-
+export function middleware(request: NextRequest) {
+    // For initial deployment, allow all requests
+    // TODO: Add authentication logic after environment variables are configured
     return NextResponse.next()
-    // return await updateSession(request)
 }
 
 export const config = {
     matcher: [
-        '/((?!_next/static|_next/image|favicon.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$).*)',
+        /*
+         * Match all request paths except for the ones starting with:
+         * - api (API routes)
+         * - _next/static (static files)
+         * - _next/image (image optimization files)
+         * - favicon.ico (favicon file)
+         */
+        '/((?!api|_next/static|_next/image|favicon.ico).*)',
     ],
 }
