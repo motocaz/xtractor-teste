@@ -1,15 +1,17 @@
 'use client'
 
+import React from 'react'
 import Image from 'next/image'
 import { Badge } from '@/components/ui/badge'
 import clsx from 'clsx'
 import type { Document, DocumentCardProps } from '../types'
 import { getStatusBadgeStyles } from '../utils/statusUtils'
 
-export default function DocumentCard({ document, isSelected, onDocumentSelect }: DocumentCardProps) {
+const DocumentCard = React.memo(function DocumentCard({ document, isSelected, onDocumentSelect }: DocumentCardProps) {
     const handleClick = () => {
         onDocumentSelect(document.id)
     }
+
 
     return (
         <div
@@ -39,14 +41,25 @@ export default function DocumentCard({ document, isSelected, onDocumentSelect }:
                     </Badge>
                 </div>
                 <div className="h-48 flex items-center justify-center p-4">
-                    <Image
-                        src="/pdf.png"
-                        alt="PDF Document"
-                        width={120}
-                        height={160}
-                        className="object-contain max-h-full rounded-sm"
-                        priority
-                    />
+                    {document.thumbnailDataUrl ? (
+                        <Image
+                            src={document.thumbnailDataUrl}
+                            alt={`Thumbnail preview of ${document.name} document, uploaded on ${new Date(document.uploadDate).toLocaleDateString()}`}
+                            width={120}
+                            height={160}
+                            className="object-contain max-h-full rounded-sm shadow-sm border border-gray-200"
+                            priority
+                        />
+                    ) : (
+                        <Image
+                            src="/pdf.png"
+                            alt={`PDF document placeholder icon for ${document.name}`}
+                            width={120}
+                            height={160}
+                            className="object-contain max-h-full rounded-sm"
+                            priority
+                        />
+                    )}
                 </div>
             </div>
 
@@ -71,4 +84,11 @@ export default function DocumentCard({ document, isSelected, onDocumentSelect }:
             </div>
         </div>
     )
-}
+}, (prevProps, nextProps) => {
+    // Custom comparison for memoization
+    return prevProps.document.id === nextProps.document.id &&
+        prevProps.document.thumbnailDataUrl === nextProps.document.thumbnailDataUrl &&
+        prevProps.isSelected === nextProps.isSelected
+})
+
+export default DocumentCard

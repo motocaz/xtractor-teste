@@ -44,7 +44,9 @@ function Dropzone({ onDrop }: { onDrop: (files: File[]) => void }) {
         >
             <input {...getInputProps()} />
             <Upload className="w-12 h-12 text-muted-foreground mx-auto mb-4" />
-            <p className="text-muted-foreground mb-2">{isDragActive ? 'Drop the PDF file here' : 'Drag & drop a PDF file here'}</p>
+            <p className="text-muted-foreground mb-2">
+                {isDragActive ? 'Drop the PDF file here' : 'Drag & drop a PDF file here'}
+            </p>
             <p className="text-sm text-muted-foreground mb-4">or click to select a file</p>
             <p className="text-xs text-muted-foreground/80">Maximum file size: 50MB</p>
         </div>

@@ -4,7 +4,8 @@ import path from 'path'
 
 export async function GET(req: NextRequest) {
     const { searchParams } = new URL(req.url)
-    const fileName = searchParams.get('fileName')
+    const fileName = searchParams.get('fileName') || searchParams.get('name')
+    const fileId = searchParams.get('id')
 
     if (!fileName) {
         return new NextResponse('File name is required', { status: 400 })

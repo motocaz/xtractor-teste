@@ -11,7 +11,7 @@ import {
 } from '@/components/ui/tooltip'
 
 interface UploadButtonProps {
-    onClick?: () => void
+    onClick: () => void
     isMinimized?: boolean
 }
 

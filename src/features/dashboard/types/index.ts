@@ -5,6 +5,7 @@ export interface Document {
     name: string
     uploadDate: string
     status: 'Ready' | 'Processing' | 'Error'
+    thumbnailDataUrl?: string
 }
 
 export interface DocumentCardProps {
