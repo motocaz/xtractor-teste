@@ -14,6 +14,8 @@ const nextConfig = {
         stream: false,
         util: false,
         url: false,
+        os: false,
+        crypto: false,
       };
     }
 
@@ -21,6 +23,12 @@ const nextConfig = {
     if (isServer) {
       config.externals = config.externals || [];
       config.externals.push("react-pdf", "pdfjs-dist");
+
+      // Add more aggressive externalization for problematic modules
+      config.externals.push({
+        "react-pdf": "commonjs react-pdf",
+        "pdfjs-dist": "commonjs pdfjs-dist",
+      });
     }
 
     return config;

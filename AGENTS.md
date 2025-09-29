@@ -154,3 +154,11 @@ When refactoring existing code:
 - **Using Indexes as Keys:** When rendering lists, avoid using the array index as a `key`. This can lead to issues with state and performance.
 - **Hardcoding Values:** Use constants or configuration files for values like API endpoints, keys, or magic numbers.
 - **Misplaced Components:** Putting reusable components in feature folders or feature-specific components in global folders.
+
+
+## Restricted Commands
+
+- **NEVER run `npm run dev` or `npm run build`** - These commands are reserved for the user to execute manually
+- **NEVER run long-running development servers** - These can interfere with the user's workflow  
+- **NEVER run commands that start background processes** unless explicitly requested by the user
+- Use alternative approaches like `npm run lint`, `npm test`, or file-based analysis instead

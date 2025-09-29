@@ -31,28 +31,23 @@ export default function PdfThumbnailGenerator({
             // Dynamically import react-pdf with proper ESM handling
             const loadReactPDF = async () => {
                 try {
-                    const reactPdfModule = await import('react-pdf')
+                    // Use dynamic import with error handling
+                    const reactPdfModule = await import('react-pdf').catch(() => {
+                        throw new Error('Failed to import react-pdf module')
+                    })
 
-                    // Configure worker
-                    reactPdfModule.pdfjs.GlobalWorkerOptions.workerSrc =
-                        `https://unpkg.com/pdfjs-dist@${reactPdfModule.pdfjs.version}/build/pdf.worker.min.mjs`
+                    // Configure worker with fallback
+                    if (reactPdfModule.pdfjs?.GlobalWorkerOptions) {
+                        reactPdfModule.pdfjs.GlobalWorkerOptions.workerSrc =
+                            'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js'
+                    }
 
                     setReactPDF(reactPdfModule)
                     setIsLoading(false)
                 } catch (error) {
                     console.error('Failed to load react-pdf:', error)
-                    // Try fallback worker
-                    try {
-                        const reactPdfModule = await import('react-pdf')
-                        reactPdfModule.pdfjs.GlobalWorkerOptions.workerSrc =
-                            'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js'
-                        setReactPDF(reactPdfModule)
-                        setIsLoading(false)
-                    } catch (fallbackError) {
-                        console.error('Fallback also failed:', fallbackError)
-                        onError?.(new Error('Failed to load PDF library'))
-                        setIsLoading(false)
-                    }
+                    onError?.(new Error('Failed to load PDF library'))
+                    setIsLoading(false)
                 }
             }
 
