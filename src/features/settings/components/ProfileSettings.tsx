@@ -8,22 +8,17 @@ import { Label } from '@/components/ui/label'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 
 export default function ProfileSettings() {
-    const [fullName, setFullName] = useState('John Doe')
-    const email = 'john.doe@example.com'
+    const [fullName, setFullName] = useState('Demo User')
+    const email = 'demo@example.com'
 
     const handlePhotoUpload = () => {
-        // TODO: Implement photo upload logic
-        console.log('Upload photo clicked')
-    }
-
-    const handleChangePassword = () => {
-        // TODO: Implement change password logic
-        console.log('Change password clicked')
+        // Demo mode - photo upload disabled
+        console.log('Photo upload not available in demo mode')
     }
 
     const handleSaveProfile = () => {
-        // TODO: Implement save profile logic
-        console.log('Save profile with name:', fullName)
+        // Demo mode - profile saving disabled
+        console.log('Profile saving not available in demo mode')
     }
 
     return (
@@ -34,13 +29,13 @@ export default function ProfileSettings() {
             <div className="space-y-6">
                 <div className="flex items-center space-x-4">
                     <Avatar className="h-20 w-20">
-                        <AvatarImage src="https://github.com/shadcn.png" alt="Profile" />
-                        <AvatarFallback>JD</AvatarFallback>
+                        <AvatarImage src="" alt="Profile" />
+                        <AvatarFallback>D</AvatarFallback>
                     </Avatar>
                     <div className="space-y-2">
-                        <Button onClick={handlePhotoUpload}>Upload new picture</Button>
+                        <Button onClick={handlePhotoUpload} disabled>Upload new picture</Button>
                         <p className="text-sm text-muted-foreground">
-                            JPG, GIF or PNG. 1MB max.
+                            Demo mode - photo upload disabled
                         </p>
                     </div>
                 </div>
@@ -59,13 +54,15 @@ export default function ProfileSettings() {
                     <Input id="email" value={email} disabled />
                 </div>
 
-                <div className="flex justify-between pt-4">
-                    <Button variant="outline" onClick={handleChangePassword}>
-                        Change Password
-                    </Button>
-                    <Button onClick={handleSaveProfile}>
-                        Save Changes
-                    </Button>
+                <div className="pt-4 space-y-2">
+                    <div className="flex justify-end">
+                        <Button onClick={handleSaveProfile} disabled>
+                            Save Changes
+                        </Button>
+                    </div>
+                    <p className="text-sm text-muted-foreground text-right">
+                        Demo mode - changes cannot be saved
+                    </p>
                 </div>
             </div>
         </SettingsCard>

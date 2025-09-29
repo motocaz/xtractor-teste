@@ -1,8 +1,6 @@
 'use client'
 
-import { Bell, LogOut, User } from 'lucide-react'
-import { supabase } from '@/lib/supabase'
-import { useRouter } from 'next/navigation'
+import { Bell } from 'lucide-react'
 import { useAuth } from '@/hooks/useAuth'
 import { Button } from '@/components/ui/button'
 import {
@@ -18,16 +16,6 @@ import { Skeleton } from '@/components/ui/skeleton'
 
 export default function UserMenu() {
     const { user, loading } = useAuth()
-    const router = useRouter()
-
-    const handleSignOut = async () => {
-        await supabase.auth.signOut()
-        router.push('/auth/signin')
-    }
-
-    const handleSignIn = () => {
-        router.push('/auth/signin')
-    }
 
     if (loading) {
         return (
@@ -38,23 +26,9 @@ export default function UserMenu() {
         )
     }
 
-    if (!user) {
-        return (
-            <div className="flex items-center space-x-4">
-                <Button variant="ghost" size="icon">
-                    <Bell className="w-5 h-5" />
-                    <span className="sr-only">Notifications</span>
-                </Button>
-                <Button onClick={handleSignIn}>
-                    <User className="mr-2 h-4 w-4" />
-                    Sign In
-                </Button>
-            </div>
-        )
-    }
-
-    const userInitial = user.user_metadata?.full_name?.[0] || user.email?.[0] || 'U'
-    const userFullName = user.user_metadata?.full_name || user.email || 'User'
+    // Since we always have a mock user, we can simplify this
+    const userInitial = user?.user_metadata?.full_name?.[0] || user?.email?.[0] || 'D'
+    const userFullName = user?.user_metadata?.full_name || user?.email || 'Demo User'
 
     return (
         <div className="flex items-center space-x-4">
@@ -66,7 +40,7 @@ export default function UserMenu() {
                 <DropdownMenuTrigger asChild>
                     <Button variant="ghost" className="relative h-8 w-8 rounded-full">
                         <Avatar className="h-8 w-8">
-                            <AvatarImage src={user.user_metadata?.avatar_url || ''} alt={userFullName} />
+                            <AvatarImage src={user?.user_metadata?.avatar_url || ''} alt={userFullName} />
                             <AvatarFallback>{userInitial}</AvatarFallback>
                         </Avatar>
                     </Button>
@@ -75,13 +49,12 @@ export default function UserMenu() {
                     <DropdownMenuLabel className="font-normal">
                         <div className="flex flex-col space-y-1">
                             <p className="text-sm font-medium leading-none">{userFullName}</p>
-                            <p className="text-xs leading-none text-muted-foreground">{user.email}</p>
+                            <p className="text-xs leading-none text-muted-foreground">{user?.email}</p>
                         </div>
                     </DropdownMenuLabel>
                     <DropdownMenuSeparator />
-                    <DropdownMenuItem onClick={handleSignOut}>
-                        <LogOut className="mr-2 h-4 w-4" />
-                        <span>Log out</span>
+                    <DropdownMenuItem disabled>
+                        <span className="text-muted-foreground">Demo Mode - No logout needed</span>
                     </DropdownMenuItem>
                 </DropdownMenuContent>
             </DropdownMenu>

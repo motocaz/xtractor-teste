@@ -1,11 +1,21 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { User } from '@supabase/supabase-js'
-import { supabase } from '@/lib/supabase'
 
-interface AuthUser extends User {
+// Mock user data for development/demo purposes
+const mockUser = {
+    id: 'demo-user-id',
+    email: 'demo@example.com',
     user_metadata: {
+        full_name: 'Demo User',
+        avatar_url: ''
+    }
+}
+
+interface AuthUser {
+    id: string
+    email: string
+    user_metadata?: {
         full_name?: string
         avatar_url?: string
     }
@@ -16,29 +26,18 @@ export function useAuth() {
     const [loading, setLoading] = useState(true)
 
     useEffect(() => {
-        // Get initial session
-        const getInitialSession = async () => {
-            const { data: { session } } = await supabase.auth.getSession()
-            setUser(session?.user as AuthUser || null)
+        // Simulate loading and return mock user
+        const timer = setTimeout(() => {
+            setUser(mockUser)
             setLoading(false)
-        }
+        }, 100) // Short delay to simulate loading
 
-        getInitialSession()
-
-        // Listen for auth changes
-        const { data: { subscription } } = supabase.auth.onAuthStateChange(
-            async (event, session) => {
-                setUser(session?.user as AuthUser || null)
-                setLoading(false)
-            }
-        )
-
-        return () => subscription.unsubscribe()
+        return () => clearTimeout(timer)
     }, [])
 
     return {
         user,
         loading,
-        isAuthenticated: !!user
+        isAuthenticated: true // Always authenticated for demo
     }
 }
