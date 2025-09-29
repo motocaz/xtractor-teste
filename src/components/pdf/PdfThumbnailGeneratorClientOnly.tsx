@@ -10,14 +10,8 @@ interface PdfThumbnailGeneratorProps {
     quality?: number
 }
 
-// Define types for dynamically imported react-pdf components
-interface ReactPDFModule {
-    Document: React.ComponentType<any>
-    Page: React.ComponentType<any>
-    pdfjs: any
-}
-
-export default function PdfThumbnailGenerator({
+// Completely client-side only PDF thumbnail generator
+export default function PdfThumbnailGeneratorClientOnly({
     file,
     onThumbnailGenerated,
     onError,
@@ -26,7 +20,7 @@ export default function PdfThumbnailGenerator({
 }: PdfThumbnailGeneratorProps) {
     const canvasRef = useRef<HTMLCanvasElement>(null)
     const [isClient, setIsClient] = useState(false)
-    const [ReactPDF, setReactPDF] = useState<ReactPDFModule | null>(null)
+    const [ReactPDF, setReactPDF] = useState<any>(null)
     const [isLoading, setIsLoading] = useState(false)
 
     // Load react-pdf dynamically only on client side
@@ -35,22 +29,41 @@ export default function PdfThumbnailGenerator({
             setIsClient(true)
             setIsLoading(true)
 
-            // Dynamically import react-pdf with proper ESM handling
+            // Use a completely client-side approach
             const loadReactPDF = async () => {
                 try {
-                    // Use dynamic import with error handling
-                    const reactPdfModule = await import('react-pdf').catch(() => {
-                        throw new Error('Failed to import react-pdf module')
-                    })
+                    // Load the PDF.js library directly from CDN
+                    const script = document.createElement('script')
+                    script.src = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js'
+                    script.async = true
 
-                    // Configure worker with fallback
-                    if (reactPdfModule.pdfjs?.GlobalWorkerOptions) {
-                        reactPdfModule.pdfjs.GlobalWorkerOptions.workerSrc =
-                            'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js'
+                    script.onload = async () => {
+                        try {
+                            // Now import react-pdf after PDF.js is loaded
+                            const reactPdfModule = await import('react-pdf')
+
+                            // Configure worker
+                            if (reactPdfModule.pdfjs?.GlobalWorkerOptions) {
+                                reactPdfModule.pdfjs.GlobalWorkerOptions.workerSrc =
+                                    'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js'
+                            }
+
+                            setReactPDF(reactPdfModule)
+                            setIsLoading(false)
+                        } catch (error) {
+                            console.error('Failed to load react-pdf after PDF.js:', error)
+                            onError?.(new Error('Failed to load PDF library'))
+                            setIsLoading(false)
+                        }
                     }
 
-                    setReactPDF(reactPdfModule)
-                    setIsLoading(false)
+                    script.onerror = () => {
+                        console.error('Failed to load PDF.js from CDN')
+                        onError?.(new Error('Failed to load PDF.js library'))
+                        setIsLoading(false)
+                    }
+
+                    document.head.appendChild(script)
                 } catch (error) {
                     console.error('Failed to load react-pdf:', error)
                     onError?.(new Error('Failed to load PDF library'))
@@ -98,8 +111,6 @@ export default function PdfThumbnailGenerator({
     }
 
     const { Document, Page } = ReactPDF
-
-    console.log('Rendering PdfThumbnailGenerator for file:', file)
 
     return (
         <div style={{ display: 'none' }} aria-hidden="true">

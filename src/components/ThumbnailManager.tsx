@@ -4,7 +4,7 @@ import { useState, useEffect, useCallback } from 'react'
 import dynamic from 'next/dynamic'
 
 // Dynamically import PdfThumbnailGenerator to avoid SSR issues
-const PdfThumbnailGenerator = dynamic(() => import('./pdf/PdfThumbnailGenerator'), {
+const PdfThumbnailGenerator = dynamic(() => import('./pdf/PdfThumbnailGeneratorClientOnly'), {
     ssr: false
 })
 
