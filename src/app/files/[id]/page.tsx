@@ -4,7 +4,20 @@ import { useState, useEffect } from 'react'
 import { useParams } from 'next/navigation'
 import clsx from 'clsx'
 import { useFiles } from '@/context/FileContext'
-import AdobePDFViewer from '@/features/file-viewer/components/AdobePDFViewer'
+import dynamic from 'next/dynamic'
+
+// Lazy load the heavy PDF viewer component
+const AdobePDFViewer = dynamic(() => import('@/features/file-viewer/components/AdobePDFViewer'), {
+    ssr: false,
+    loading: () => (
+        <div className="h-96 flex items-center justify-center bg-gray-50 rounded-lg">
+            <div className="text-center">
+                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto mb-2"></div>
+                <p className="text-gray-600">Loading PDF viewer...</p>
+            </div>
+        </div>
+    )
+})
 import NoFileSelected from '@/features/file-viewer/components/NoFileSelected'
 import { Button } from '@/components/ui/button'
 import ExtractedContentMenu from '@/features/file-viewer/components/ExtractedContentMenu'

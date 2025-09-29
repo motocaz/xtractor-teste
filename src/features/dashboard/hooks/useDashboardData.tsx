@@ -22,34 +22,40 @@ export function useDashboardData(initialFiles: ServerFile[]) {
         initialFiles.map(transformServerFileToDocument)
     )
 
-    // Update documents when server files change
+    // Update documents when server files change (optimized with Map lookup)
     useEffect(() => {
         setDocuments(prev => {
+            // Create a Map for O(1) lookups instead of O(n) Array.find
+            const existingMap = new Map(prev.map(doc => [doc.id, doc]))
+
             const newDocs = serverFiles.map(file => {
-                const existing = prev.find(doc => doc.id === file.id)
-                if (existing) {
-                    return existing // Keep existing document with thumbnail if available
-                }
-                return transformServerFileToDocument(file)
+                const existing = existingMap.get(file.id)
+                return existing || transformServerFileToDocument(file)
             })
             return newDocs
         })
     }, [serverFiles])
 
     const updateDocumentThumbnail = useCallback((fileId: string, thumbnailDataUrl: string) => {
-        setDocuments(prev => prev.map(doc =>
-            doc.id === fileId
-                ? { ...doc, thumbnailDataUrl, thumbnailGenerating: false }
-                : doc
-        ))
+        setDocuments(prev => {
+            const index = prev.findIndex(doc => doc.id === fileId)
+            if (index === -1) return prev
+
+            const newDocs = [...prev]
+            newDocs[index] = { ...prev[index], thumbnailDataUrl, thumbnailGenerating: false }
+            return newDocs
+        })
     }, [])
 
     const markThumbnailError = useCallback((fileId: string) => {
-        setDocuments(prev => prev.map(doc =>
-            doc.id === fileId
-                ? { ...doc, thumbnailGenerating: false }
-                : doc
-        ))
+        setDocuments(prev => {
+            const index = prev.findIndex(doc => doc.id === fileId)
+            if (index === -1) return prev
+
+            const newDocs = [...prev]
+            newDocs[index] = { ...prev[index], thumbnailGenerating: false }
+            return newDocs
+        })
     }, [])
 
     const addNewFile = useCallback((file: ServerFile) => {

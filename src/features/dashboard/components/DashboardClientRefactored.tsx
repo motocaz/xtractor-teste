@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useCallback } from 'react'
+import React, { useState, useCallback } from 'react'
 import { ChevronDown, Filter } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import DocumentCard from './DocumentCard'
@@ -22,7 +22,7 @@ interface DashboardClientProps {
     initialFiles: ServerFile[]
 }
 
-export default function DashboardClientRefactored({ initialFiles }: DashboardClientProps) {
+const DashboardClientRefactored = React.memo(function DashboardClientRefactored({ initialFiles }: DashboardClientProps) {
     const [selectedDocumentId, setSelectedDocumentId] = useState<string | null>(null)
 
     // Use custom hooks for data management
@@ -125,4 +125,10 @@ export default function DashboardClientRefactored({ initialFiles }: DashboardCli
             />
         </>
     )
-}
+}, (prevProps, nextProps) => {
+    // Shallow compare initialFiles array
+    return prevProps.initialFiles.length === nextProps.initialFiles.length &&
+        prevProps.initialFiles.every((file, index) => file.id === nextProps.initialFiles[index]?.id)
+})
+
+export default DashboardClientRefactored

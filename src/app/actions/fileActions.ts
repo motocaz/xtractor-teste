@@ -23,10 +23,20 @@ const getPdfDirectory = () => {
     }
 }
 
-// Server action to read all files from the directory
-export async function getServerFiles(): Promise<ServerFile[]> {
+// Internal function to read files from directory
+async function readFilesFromDirectory(): Promise<ServerFile[]> {
     try {
         const pdfDirectory = getPdfDirectory()
+
+        // Check if directory exists first (important for build-time)
+        try {
+            await stat(pdfDirectory)
+        } catch (dirError) {
+            // Directory doesn't exist yet (normal for build-time or fresh deployments)
+            console.log('PDF directory does not exist yet:', pdfDirectory)
+            return []
+        }
+
         const fileNames = await readdir(pdfDirectory)
 
         // Filter for PDF files only
@@ -41,9 +51,9 @@ export async function getServerFiles(): Promise<ServerFile[]> {
                 const stats = await stat(filePath)
 
                 files.push({
-                    id: Buffer.from(fileName).toString('base64'), // Create unique ID from filename
+                    id: Buffer.from(fileName).toString('base64'),
                     name: fileName,
-                    uploadDate: stats.mtime.toISOString(), // Use modification time
+                    uploadDate: stats.mtime.toISOString(),
                     size: stats.size
                 })
             } catch (error) {
@@ -55,9 +65,17 @@ export async function getServerFiles(): Promise<ServerFile[]> {
         return files.sort((a, b) => new Date(b.uploadDate).getTime() - new Date(a.uploadDate).getTime())
 
     } catch (error) {
-        console.error('Error reading PDF directory:', error)
+        // Suppress error logging during build time to avoid noise
+        if (process.env.NODE_ENV !== 'production' || process.env.VERCEL_ENV === 'development') {
+            console.error('Error reading PDF directory:', error)
+        }
         return []
     }
+}
+
+// Server action to read all files from the directory
+export async function getServerFiles(): Promise<ServerFile[]> {
+    return readFilesFromDirectory()
 }
 
 // Server action to upload a file
@@ -97,8 +115,9 @@ export async function uploadFileAction(formData: FormData): Promise<{ success: b
             size: file.size
         }
 
-        // Revalidate the page to trigger re-fetch of server files
+        // Revalidate the page and clear cache to trigger re-fetch of server files
         revalidatePath('/')
+        revalidatePath('/', 'page') // Ensure page cache is invalidated
 
         return { success: true, file: newFile }
 

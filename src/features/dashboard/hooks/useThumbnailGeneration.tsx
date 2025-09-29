@@ -22,14 +22,19 @@ export function useThumbnailGeneration(
     onThumbnailGenerated: (fileId: string, dataUrl: string) => void,
     onThumbnailError: (fileId: string, error: Error) => void
 ) {
-    // Generate thumbnails for documents that don't have them
+    // Generate thumbnails for documents that don't have them (optimized single iteration)
     const pendingThumbnails = useMemo(() => {
-        const pending = documents
-            .filter(doc => !doc.thumbnailDataUrl && doc.thumbnailGenerating)
-            .map(doc => ({
-                fileId: doc.id,
-                filePath: getFilePath(doc.id, doc.name)
-            }))
+        const pending: Array<{ fileId: string; filePath: string }> = []
+
+        // Single iteration instead of filter + map
+        for (const doc of documents) {
+            if (!doc.thumbnailDataUrl && doc.thumbnailGenerating) {
+                pending.push({
+                    fileId: doc.id,
+                    filePath: getFilePath(doc.id, doc.name)
+                })
+            }
+        }
 
         console.log('Pending thumbnails:', pending)
         return pending
