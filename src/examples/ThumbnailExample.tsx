@@ -1,7 +1,8 @@
 'use client'
 
 import { useState } from 'react'
-import PdfThumbnailGenerator from '@/components/PdfThumbnailGenerator'
+import Image from 'next/image'
+import PdfThumbnailGenerator from '@/components/pdf/PdfThumbnailGenerator'
 import { Button } from '@/components/ui/button'
 
 /**
@@ -69,10 +70,13 @@ export default function ThumbnailExample() {
                 <div className="mb-6">
                     <h3 className="text-lg font-semibold mb-2">Generated Thumbnail:</h3>
                     <div className="border border-gray-200 rounded p-4 inline-block">
-                        <img
+                        <Image
                             src={thumbnailDataUrl}
                             alt="PDF Thumbnail"
+                            width={300}
+                            height={400}
                             className="max-w-xs max-h-96 object-contain"
+                            unoptimized={true}
                         />
                     </div>
                     <div className="mt-2 text-sm text-gray-600">

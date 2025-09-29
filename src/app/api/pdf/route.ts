@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import fs from 'fs'
 import path from 'path'
+import { getStorageDirectory } from '@/lib/storage'
 
 export async function GET(req: NextRequest) {
     const { searchParams } = new URL(req.url)
@@ -13,7 +14,7 @@ export async function GET(req: NextRequest) {
 
     // Sanitize the file name to prevent directory traversal
     const sanitizedFileName = path.basename(fileName)
-    const filePath = path.join(process.cwd(), 'src', 'data', 'pdfs', sanitizedFileName)
+    const filePath = path.join(getStorageDirectory(), sanitizedFileName)
 
     try {
         if (fs.existsSync(filePath)) {

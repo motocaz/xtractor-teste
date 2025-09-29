@@ -1,8 +1,9 @@
 'use client'
 
 import { useState } from 'react'
-import PdfThumbnailGeneratorSimple from '@/components/PdfThumbnailGeneratorSimple'
+import Image from 'next/image'
 import { Button } from '@/components/ui/button'
+import PdfThumbnailGenerator from '@/components/pdf/PdfThumbnailGenerator'
 
 export default function TestThumbnailPage() {
     const [thumbnailDataUrl, setThumbnailDataUrl] = useState<string | null>(null)
@@ -46,10 +47,13 @@ export default function TestThumbnailPage() {
                     <div className="space-y-4">
                         <h2 className="text-xl font-semibold">Generated Thumbnail:</h2>
                         <div className="border border-gray-200 rounded p-4 inline-block">
-                            <img
+                            <Image
                                 src={thumbnailDataUrl}
                                 alt="PDF Thumbnail"
+                                width={400}
+                                height={600}
                                 className="max-w-sm max-h-96 object-contain"
+                                unoptimized={true}
                             />
                         </div>
                         <p className="text-sm text-gray-600">
@@ -59,7 +63,7 @@ export default function TestThumbnailPage() {
                 )}
 
                 {isGenerating && (
-                    <PdfThumbnailGeneratorSimple
+                    <PdfThumbnailGenerator
                         file={testPdfFile}
                         onThumbnailGenerated={handleThumbnailGenerated}
                         onError={handleThumbnailError}
@@ -72,7 +76,7 @@ export default function TestThumbnailPage() {
             <div className="mt-8 p-4 bg-gray-50 rounded">
                 <h3 className="text-lg font-semibold mb-2">Test Instructions:</h3>
                 <ol className="list-decimal list-inside space-y-1 text-sm">
-                    <li>Click "Generate Thumbnail" to start the process</li>
+                    <li>Click &quot;Generate Thumbnail&quot; to start the process</li>
                     <li>Check the browser console for debug logs</li>
                     <li>The thumbnail should appear above if generation succeeds</li>
                     <li>Any errors will be displayed in the red box</li>

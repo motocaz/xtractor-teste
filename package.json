@@ -3,8 +3,9 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "dev": "next dev",
+    "dev": "next dev --turbo",
     "build": "next build",
+    "build:turbo": "next build --turbo",
     "start": "next start",
     "lint": "next lint"
   },

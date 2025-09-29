@@ -1,6 +1,6 @@
 'use client'
 
-import React, { useEffect, useRef } from 'react'
+import React, { useEffect, useRef, useCallback } from 'react'
 import Script from 'next/script'
 
 interface AdobePDFViewerProps {
@@ -14,19 +14,7 @@ const AdobePDFViewer: React.FC<AdobePDFViewerProps> = ({ clientId, fileUrl, loca
     const viewerRef = useRef<HTMLDivElement>(null)
     const adobeViewer = useRef<any>(null)
 
-    useEffect(() => {
-        if (!window.AdobeDC) {
-            document.addEventListener('adobe_dc_view_sdk.ready', initializeViewer)
-        } else {
-            initializeViewer()
-        }
-
-        return () => {
-            document.removeEventListener('adobe_dc_view_sdk.ready', initializeViewer)
-        }
-    }, [clientId, fileUrl, localFile, fileName])
-
-    const initializeViewer = () => {
+    const initializeViewer = useCallback(() => {
         if ((!fileUrl && !localFile) || !viewerRef.current) {
             return
         }
@@ -54,7 +42,19 @@ const AdobePDFViewer: React.FC<AdobePDFViewerProps> = ({ clientId, fileUrl, loca
                 showDownloadPDF: true,
             }
         )
-    }
+    }, [clientId, fileUrl, localFile, fileName])
+
+    useEffect(() => {
+        if (!window.AdobeDC) {
+            document.addEventListener('adobe_dc_view_sdk.ready', initializeViewer)
+        } else {
+            initializeViewer()
+        }
+
+        return () => {
+            document.removeEventListener('adobe_dc_view_sdk.ready', initializeViewer)
+        }
+    }, [initializeViewer])
 
     return (
         <>

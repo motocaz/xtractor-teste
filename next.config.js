@@ -1,21 +1,26 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-  // Next.js 14+ automatically detects src/app directory
+  // Enable server external packages for react-pdf (ESM package)
+  serverExternalPackages: ["react-pdf", "pdfjs-dist"],
+
   webpack: (config, { isServer }) => {
-    // Handle react-pdf and canvas issues
+    // Handle react-pdf and canvas issues for client-side
     if (!isServer) {
       config.resolve.fallback = {
         ...config.resolve.fallback,
         canvas: false,
         fs: false,
         path: false,
+        stream: false,
+        util: false,
+        url: false,
       };
     }
 
-    // Ignore pdfjs-dist worker on server-side
+    // Externalize react-pdf for server-side to prevent SSR issues
     if (isServer) {
       config.externals = config.externals || [];
-      config.externals.push("pdfjs-dist");
+      config.externals.push("react-pdf", "pdfjs-dist");
     }
 
     return config;

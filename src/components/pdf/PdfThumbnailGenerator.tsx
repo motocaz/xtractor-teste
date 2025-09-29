@@ -1,25 +1,6 @@
 'use client'
 
 import { useRef, useCallback, useEffect, useState } from 'react'
-import dynamic from 'next/dynamic'
-
-// Dynamically import react-pdf components to avoid SSR issues
-const Document = dynamic(
-    () => import('react-pdf').then(mod => ({ default: mod.Document })),
-    { ssr: false }
-)
-
-const Page = dynamic(
-    () => import('react-pdf').then(mod => ({ default: mod.Page })),
-    { ssr: false }
-)
-
-// Proper TypeScript interfaces
-interface PdfLibrary {
-    Document: React.ComponentType<any>
-    Page: React.ComponentType<any>
-    pdfjs: any
-}
 
 interface PdfThumbnailGeneratorProps {
     file: File | string | ArrayBuffer
@@ -27,16 +8,6 @@ interface PdfThumbnailGeneratorProps {
     onError?: (error: Error) => void
     width?: number
     quality?: number
-}
-
-// Configure PDF.js worker on client side with proper error handling
-if (typeof window !== 'undefined') {
-    import('react-pdf').then(({ pdfjs }) => {
-        // Use a known working worker from a reliable CDN
-        pdfjs.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js'
-    }).catch((error) => {
-        console.error('Failed to configure PDF.js worker:', error)
-    })
 }
 
 export default function PdfThumbnailGenerator({
@@ -48,33 +19,44 @@ export default function PdfThumbnailGenerator({
 }: PdfThumbnailGeneratorProps) {
     const canvasRef = useRef<HTMLCanvasElement>(null)
     const [isClient, setIsClient] = useState(false)
-    const [pdfLib, setPdfLib] = useState<PdfLibrary | null>(null)
+    const [ReactPDF, setReactPDF] = useState<any>(null)
+    const [isLoading, setIsLoading] = useState(false)
 
-    // Load react-pdf and configure worker on client side
+    // Load react-pdf dynamically only on client side
     useEffect(() => {
         if (typeof window !== 'undefined') {
             setIsClient(true)
+            setIsLoading(true)
 
-            // Dynamically import react-pdf with proper worker configuration
-            import('react-pdf').then(({ Document, Page, pdfjs }) => {
-                // Configure worker for react-pdf v10+ compatibility
-                pdfjs.GlobalWorkerOptions.workerSrc = new URL(
-                    'pdfjs-dist/build/pdf.worker.min.mjs',
-                    import.meta.url,
-                ).toString()
+            // Dynamically import react-pdf with proper ESM handling
+            const loadReactPDF = async () => {
+                try {
+                    const reactPdfModule = await import('react-pdf')
 
-                setPdfLib({ Document, Page, pdfjs })
-            }).catch((error) => {
-                console.error('Failed to load react-pdf:', error)
-                // Try fallback worker configuration
-                import('react-pdf').then(({ Document, Page, pdfjs }) => {
-                    pdfjs.GlobalWorkerOptions.workerSrc = 'https://unpkg.com/pdfjs-dist@4.4.168/build/pdf.worker.min.mjs'
-                    setPdfLib({ Document, Page, pdfjs })
-                }).catch((fallbackError) => {
-                    console.error('Fallback worker also failed:', fallbackError)
-                    onError?.(new Error('Failed to load PDF library'))
-                })
-            })
+                    // Configure worker
+                    reactPdfModule.pdfjs.GlobalWorkerOptions.workerSrc =
+                        `https://unpkg.com/pdfjs-dist@${reactPdfModule.pdfjs.version}/build/pdf.worker.min.mjs`
+
+                    setReactPDF(reactPdfModule)
+                    setIsLoading(false)
+                } catch (error) {
+                    console.error('Failed to load react-pdf:', error)
+                    // Try fallback worker
+                    try {
+                        const reactPdfModule = await import('react-pdf')
+                        reactPdfModule.pdfjs.GlobalWorkerOptions.workerSrc =
+                            'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js'
+                        setReactPDF(reactPdfModule)
+                        setIsLoading(false)
+                    } catch (fallbackError) {
+                        console.error('Fallback also failed:', fallbackError)
+                        onError?.(new Error('Failed to load PDF library'))
+                        setIsLoading(false)
+                    }
+                }
+            }
+
+            loadReactPDF()
         }
     }, [onError])
 
@@ -91,7 +73,6 @@ export default function PdfThumbnailGenerator({
         console.log('Page rendered successfully, extracting thumbnail')
         if (canvasRef.current) {
             try {
-                // Convert canvas to data URL with specified quality
                 const dataUrl = canvasRef.current.toDataURL('image/jpeg', quality)
                 console.log('Thumbnail generated, data URL length:', dataUrl.length)
                 onThumbnailGenerated(dataUrl)
@@ -101,7 +82,6 @@ export default function PdfThumbnailGenerator({
             }
         } else {
             console.error('Canvas ref is null when trying to generate thumbnail')
-            onError?.(new Error('Canvas reference not available'))
         }
     }, [onThumbnailGenerated, onError, quality])
 
@@ -110,12 +90,12 @@ export default function PdfThumbnailGenerator({
         onError?.(error)
     }, [onError])
 
-    // Only render on client side and when PDF library is loaded
-    if (!isClient || !pdfLib) {
+    // Only render on client side and when react-pdf is loaded
+    if (!isClient || !ReactPDF || isLoading) {
         return null
     }
 
-    const { Document, Page } = pdfLib
+    const { Document, Page } = ReactPDF
 
     console.log('Rendering PdfThumbnailGenerator for file:', file)
 
@@ -138,7 +118,6 @@ export default function PdfThumbnailGenerator({
                     loading=""
                     error=""
                     noData=""
-                    // Disable text layer and annotations for thumbnail generation
                     renderTextLayer={false}
                     renderAnnotationLayer={false}
                 />

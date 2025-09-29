@@ -1,8 +1,9 @@
 'use server'
 
-import { writeFile, readdir, stat } from 'fs/promises'
+import { writeFile, readdir, stat, mkdir } from 'fs/promises'
 import path from 'path'
 import { revalidatePath } from 'next/cache'
+import { getStorageDirectory } from '@/lib/storage'
 
 export interface ServerFile {
     id: string
@@ -11,8 +12,16 @@ export interface ServerFile {
     size: number
 }
 
-// Get the PDF directory path
-const getPdfDirectory = () => path.join(process.cwd(), 'src', 'data', 'pdfs')
+// Get the PDF directory path using the storage utility
+const getPdfDirectory = () => {
+    try {
+        return getStorageDirectory()
+    } catch (error) {
+        console.error('Error getting PDF directory:', error)
+        // Fallback to a safe path
+        return path.join(process.cwd(), 'data', 'pdfs')
+    }
+}
 
 // Server action to read all files from the directory
 export async function getServerFiles(): Promise<ServerFile[]> {
@@ -66,7 +75,15 @@ export async function uploadFileAction(formData: FormData): Promise<{ success: b
 
         const buffer = Buffer.from(await file.arrayBuffer())
         const sanitizedFileName = path.basename(file.name)
-        const filePath = path.join(getPdfDirectory(), sanitizedFileName)
+        const pdfDirectory = getPdfDirectory()
+        const filePath = path.join(pdfDirectory, sanitizedFileName)
+
+        // Ensure directory exists (important for serverless environments)
+        try {
+            await mkdir(pdfDirectory, { recursive: true })
+        } catch (error) {
+            // Directory might already exist, that's ok
+        }
 
         // Write file to directory
         await writeFile(filePath, buffer)
